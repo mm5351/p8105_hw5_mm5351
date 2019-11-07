@@ -30,11 +30,38 @@ iris_fill = function(x) {
 output = map_df(iris_with_missing, iris_fill) 
 ```
 
+list.files(path = "./Data", pattern = ".csv",  all.files = TRUE)
+
 **Problem 2**
 ```{r}
-study_df = 
-  list.files(path = "./Data", pattern = ".csv",  all.files = TRUE, full.names = FALSE) 
+study_df = tibble(
+participants = list.files(path = "./Data", pattern = ".csv",  all.files = TRUE, full.names = TRUE)) %>% 
+  mutate(data = map(participants, read_csv)) %>% 
+  unnest() 
 
+study_df = 
+  study_df %>%
+  separate(col = participants, sep = "_", into = c("arm", "subjectID")) %>% 
+  mutate(
+    arm = str_replace(arm, "./Data/", ""),
+    subjectID = str_replace(subjectID, ".csv", "")
+  )
+```
+
+```{r}
+study_df %>% 
+  pivot_longer(
+    week_1:week_8,
+    names_to = "week",
+    values_to = "observation"
+  ) %>% 
+  
+ggplot(aes(x = week, y = observation, group = subjectID, color = arm)) +
+  geom_line() + 
+     labs(
+    title = "Observations Over Time",
+    x = "Time (Week)",
+    y = "Observation")
 ```
 
 **Problem 3**
